@@ -29,6 +29,12 @@ public class JwtUtil {
                 secretKey.getBytes()
         );
     }
+    
+    public String extractUsername(String token) {
+
+        return extractClaims(token)
+                .getSubject();
+    }
 
     public String generateToken(
             String code,

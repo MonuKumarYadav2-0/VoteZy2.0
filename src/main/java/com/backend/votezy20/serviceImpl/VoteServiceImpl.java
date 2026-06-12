@@ -110,6 +110,7 @@ public class VoteServiceImpl implements VoteService {
 				.toList();
 
 		messagingTemplate.convertAndSend("/topic/results/" + election.getElectionCode(), liveData);
+		return;
 	}
 
 	@Override
@@ -131,5 +132,11 @@ public class VoteServiceImpl implements VoteService {
 						.candidateCode(vote.getCandidate().getCandidateCode())
 						.electionCode(vote.getElection().getElectionCode()).votedAt(vote.getVotedAt()).build())
 				.toList();
+	}
+
+	@Override
+	public VoteResponse getMyVote(String voterCode, String electionCode) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

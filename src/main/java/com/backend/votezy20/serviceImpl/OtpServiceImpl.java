@@ -1,23 +1,23 @@
 package com.backend.votezy20.serviceImpl;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.Random;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.backend.votezy20.entitiy.OtpToken;
-import com.backend.votezy20.repositories.OtpTokenRepository;
+import com.backend.votezy20.exception.InvalidOtpException;
 import com.backend.votezy20.service.OtpService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class OtpServiceImpl implements OtpService {
 
-	private final OtpTokenRepository otpTokenRepository;
+	private static final String OTP_PREFIX = "otp:";
+
+	private final RedisTemplate<String, Object> redisTemplate;
 
 	@Override
 	public String generateOtp() {
@@ -30,42 +30,46 @@ public class OtpServiceImpl implements OtpService {
 	}
 
 	@Override
-	public OtpToken createOtp(String email) {
+	public String createOtp(String email) {
 
 		String otp = generateOtp();
 
-		OtpToken otpToken = OtpToken.builder().email(email).otp(otp).expiresAt(LocalDateTime.now().plusMinutes(15))
-				.used(false).build();
+		String key = OTP_PREFIX + email;
 
-		return otpTokenRepository.save(otpToken);
+		// Save OTP in Redis
+		redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(15));
+
+		return otp;
 	}
 
 	@Override
 	public boolean verifyOtp(String email, String otp) {
 
-		OtpToken otpToken = otpTokenRepository.findTopByEmailAndOtpAndUsedFalseOrderByCreatedAtDesc(email, otp)
-				.orElse(null);
+		String key = OTP_PREFIX + email;
 
-		if (otpToken == null) {
-			return false;
+		Object storedOtp = redisTemplate.opsForValue().get(key);
+
+		// OTP expired or missing
+		if (storedOtp == null) {
+
+			throw new InvalidOtpException("OTP expired");
 		}
 
-		if (otpToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-			return false;
+		// Invalid OTP
+		if (!storedOtp.toString().equals(otp)) {
+
+			throw new InvalidOtpException("Invalid OTP");
 		}
 
-		otpToken.setUsed(true);
-
-		otpTokenRepository.save(otpToken);
+		// Remove after successful verification
+		redisTemplate.delete(key);
 
 		return true;
 	}
 
 	@Override
-	public void invalidateOtp(OtpToken otpToken) {
+	public void invalidateOtp(String email) {
 
-		otpToken.setUsed(true);
-
-		otpTokenRepository.save(otpToken);
+		redisTemplate.delete(OTP_PREFIX + email);
 	}
 }

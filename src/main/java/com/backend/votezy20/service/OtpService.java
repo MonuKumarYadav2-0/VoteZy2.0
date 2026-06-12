@@ -1,12 +1,10 @@
 package com.backend.votezy20.service;
 
-import com.backend.votezy20.entitiy.OtpToken;
-
 public interface OtpService {
 
     String generateOtp();
 
-    OtpToken createOtp(
+    String createOtp(
             String email
     );
 
@@ -16,6 +14,6 @@ public interface OtpService {
     );
 
     void invalidateOtp(
-            OtpToken otpToken
+            String email
     );
 }

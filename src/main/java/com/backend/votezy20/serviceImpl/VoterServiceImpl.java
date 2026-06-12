@@ -192,4 +192,16 @@ public class VoterServiceImpl implements VoterService {
 
 		voterRepository.save(voter);
 	}
+
+	@Override
+	public VoterProfileResponse getByCode(String orgCode, String voterCode) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void toggleVoterStatus(String orgCode, String voterCode) {
+		// TODO Auto-generated method stub
+		
+	}
 }

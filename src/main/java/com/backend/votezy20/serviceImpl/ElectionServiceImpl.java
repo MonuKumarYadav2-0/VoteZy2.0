@@ -11,12 +11,14 @@ import com.backend.votezy20.entitiy.Election;
 import com.backend.votezy20.entitiy.Organization;
 import com.backend.votezy20.repositories.ElectionRepository;
 import com.backend.votezy20.repositories.OrgRepository;
+import com.backend.votezy20.requestDTO.CreateElectionRequest;
 import com.backend.votezy20.requestDTO.ElectionCreateRequest;
 import com.backend.votezy20.requestDTO.ElectionStatusRequest;
 import com.backend.votezy20.responseDTO.ElectionResponse;
 import com.backend.votezy20.service.ElectionService;
 import com.backend.votezy20.util.CodeGenerator;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -109,5 +111,23 @@ public class ElectionServiceImpl implements ElectionService {
 				.startTime(election.getStartTime()).endTime(election.getEndTime()).isActive(election.getIsActive())
 				.orgCode(election.getOrganization().getOrgCode()).candidateCount(election.getCandidates().size())
 				.build();
+	}
+
+	@Override
+	public ElectionResponse create(String orgCode, @Valid CreateElectionRequest request) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ElectionResponse getByCode(String electionCode) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void toggleStatus(String orgCode, String electionCode) {
+		// TODO Auto-generated method stub
+		
 	}
 }

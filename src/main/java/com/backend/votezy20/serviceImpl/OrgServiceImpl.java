@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.votezy20.entitiy.Organization;
-import com.backend.votezy20.entitiy.OtpToken;
+import com.backend.votezy20.exception.DuplicateResourceException;
+import com.backend.votezy20.exception.ResourceNotFoundException;
 import com.backend.votezy20.repositories.OrgRepository;
 import com.backend.votezy20.repositories.VoterRepository;
 import com.backend.votezy20.requestDTO.ChangePasswordRequest;
@@ -22,10 +23,7 @@ import com.backend.votezy20.service.OrgService;
 import com.backend.votezy20.service.OtpService;
 import com.backend.votezy20.util.CodeGenerator;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class OrgServiceImpl implements OrgService {
 
@@ -35,13 +33,24 @@ public class OrgServiceImpl implements OrgService {
 	private final EmailService emailService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
+	
+	public OrgServiceImpl(OrgRepository orgRepository, VoterRepository voterRepository, OtpService otpService,
+			EmailService emailService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+		super();
+		this.orgRepository = orgRepository;
+		this.voterRepository = voterRepository;
+		this.otpService = otpService;
+		this.emailService = emailService;
+		this.passwordEncoder = passwordEncoder;
+		this.jwtUtil = jwtUtil;
+	}
 
 	@Override
 	public void register(OrgRegisterRequest request) {
 
 		if (orgRepository.existsByEmail(request.getEmail())) {
 
-			throw new RuntimeException("Organization email already exists");
+			throw new DuplicateResourceException("Organization email already exists");
 		}
 
 		Organization organization = Organization.builder().orgCode(CodeGenerator.generateOrgCode())
@@ -51,23 +60,18 @@ public class OrgServiceImpl implements OrgService {
 
 		orgRepository.save(organization);
 
-		OtpToken otpToken = otpService.createOtp(request.getEmail());
+		String otp = otpService.createOtp(request.getEmail());
 
-		emailService.sendOtpEmail(request.getEmail(), otpToken.getOtp());
+		emailService.sendOtpEmail(request.getEmail(), otp);
 	}
 
 	@Override
 	public void verifyOtp(VerifyOtpRequest request) {
 
 		Organization organization = orgRepository.findByEmail(request.getEmail())
-				.orElseThrow(() -> new RuntimeException("Organization not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
 
-		boolean verified = otpService.verifyOtp(request.getEmail(), request.getOtp());
-
-		if (!verified) {
-
-			throw new RuntimeException("Invalid or expired OTP");
-		}
+		otpService.verifyOtp(request.getEmail(), request.getOtp());
 
 		organization.setIsVerified(true);
 
@@ -152,4 +156,6 @@ public class OrgServiceImpl implements OrgService {
 
 		emailService.sendVoterInviteEmail(voter.getEmail(), voter.getName(), token);
 	}
+
+	
 }

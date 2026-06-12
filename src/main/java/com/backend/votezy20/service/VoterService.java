@@ -10,42 +10,23 @@ import com.backend.votezy20.responseDTO.VoterProfileResponse;
 
 public interface VoterService {
 
-    void addSingleVoter(
-            String orgCode,
-            AddSingleVoterRequest request
-    );
+	void addSingleVoter(String orgCode, AddSingleVoterRequest request);
 
-    void uploadVotersCsv(
-            String orgCode,
-            MultipartFile file
-    );
+	void uploadVotersCsv(String orgCode, MultipartFile file);
 
-    void setPassword(
-            SetPasswordRequest request
-    );
+	void setPassword(SetPasswordRequest request);
 
-    String login(
-            VoterLoginRequest request
-    );
+	String login(VoterLoginRequest request);
 
-    VoterProfileResponse getProfile(
-            String voterCode
-    );
+	VoterProfileResponse getProfile(String voterCode);
 
-    PagedResponse<VoterProfileResponse>
-    getAllVoters(
-            String orgCode,
-            int page,
-            int size
-    );
+	PagedResponse<VoterProfileResponse> getAllVoters(String orgCode, int page, int size);
 
-    void deactivateVoter(
-            String orgCode,
-            String voterCode
-    );
+	void deactivateVoter(String orgCode, String voterCode);
 
-    void activateVoter(
-            String orgCode,
-            String voterCode
-    );
+	void activateVoter(String orgCode, String voterCode);
+
+	VoterProfileResponse getByCode(String orgCode, String voterCode);
+
+	void toggleVoterStatus(String orgCode, String voterCode);
 }

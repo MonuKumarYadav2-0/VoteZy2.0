@@ -2,6 +2,7 @@ package com.backend.votezy20.responseDTO;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
@@ -9,7 +10,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ElectionResponse {
+public class ElectionResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private String electionCode;
     private String name;

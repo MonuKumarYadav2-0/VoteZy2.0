@@ -22,4 +22,6 @@ public interface VoteService {
             String orgCode,
             String electionCode
     );
+
+	VoteResponse getMyVote(String voterCode, String electionCode);
 }
