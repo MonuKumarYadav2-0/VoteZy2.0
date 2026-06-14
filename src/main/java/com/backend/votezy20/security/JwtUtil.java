@@ -1,15 +1,18 @@
+
 package com.backend.votezy20.security;
+
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import java.util.Date;
 
 @Component
 public class JwtUtil {
@@ -29,13 +32,8 @@ public class JwtUtil {
                 secretKey.getBytes()
         );
     }
-    
-    public String extractUsername(String token) {
 
-        return extractClaims(token)
-                .getSubject();
-    }
-
+    // Generate JWT Token
     public String generateToken(
             String code,
             String role
@@ -60,6 +58,7 @@ public class JwtUtil {
                 .compact();
     }
 
+    // Extract Org/Voter Code
     public String extractCode(
             String token
     ) {
@@ -68,6 +67,7 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    // Extract Role
     public String extractRole(
             String token
     ) {
@@ -79,6 +79,7 @@ public class JwtUtil {
                 );
     }
 
+    // Validate Token
     public boolean isTokenValid(
             String token
     ) {
@@ -100,6 +101,7 @@ public class JwtUtil {
         }
     }
 
+    // Extract Claims
     private Claims extractClaims(
             String token
     ) {
@@ -111,3 +113,4 @@ public class JwtUtil {
                 .getBody();
     }
 }
+

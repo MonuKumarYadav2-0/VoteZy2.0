@@ -5,6 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.backend.votezy20.requestDTO.AddSingleVoterRequest;
 import com.backend.votezy20.requestDTO.SetPasswordRequest;
 import com.backend.votezy20.requestDTO.VoterLoginRequest;
+import com.backend.votezy20.responseDTO.AuthResponse;
 import com.backend.votezy20.responseDTO.PagedResponse;
 import com.backend.votezy20.responseDTO.VoterProfileResponse;
 
@@ -22,11 +23,11 @@ public interface VoterService {
 
 	PagedResponse<VoterProfileResponse> getAllVoters(String orgCode, int page, int size);
 
-	void deactivateVoter(String orgCode, String voterCode);
 
-	void activateVoter(String orgCode, String voterCode);
 
 	VoterProfileResponse getByCode(String orgCode, String voterCode);
 
 	void toggleVoterStatus(String orgCode, String voterCode);
+
+	VoterProfileResponse getByCode(String voterCode);
 }

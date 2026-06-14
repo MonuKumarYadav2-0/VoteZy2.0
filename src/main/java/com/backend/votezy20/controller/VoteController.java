@@ -2,17 +2,11 @@ package com.backend.votezy20.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.backend.votezy20.requestDTO.CastVoteRequest;
 import com.backend.votezy20.responseDTO.ApiResponse;
@@ -27,25 +21,35 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 public class VoteController {
-	@Autowired
-	private  VoteService voteService;
 
+	private final VoteService voteService;
+
+	// =========================
 	// VOTER ONLY
+	// CAST VOTE
+	// =========================
 	@PostMapping("/cast")
-	public ResponseEntity<ApiResponse<Void>> castVote(Authentication authentication,
+	public ResponseEntity<ApiResponse<Void>> castVote(
+
+			Authentication authentication,
 
 			@Valid @RequestBody CastVoteRequest request) {
 
 		String voterCode = authentication.getName();
 
-	    voteService.castVote(voterCode, request);
+		voteService.castVote(voterCode, request);
 
-		return new ResponseEntity<ApiResponse<Void>>(null);
+		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Vote cast successfully", null));
 	}
 
+	// =========================
 	// ORG ONLY
+	// GET ALL VOTES
+	// =========================
 	@GetMapping("/election/{electionCode}")
-	public ResponseEntity<ApiResponse<List<VoteResponse>>> getVotesByElection(Authentication authentication,
+	public ResponseEntity<ApiResponse<List<VoteResponse>>> getVotesByElection(
+
+			Authentication authentication,
 
 			@PathVariable String electionCode) {
 
@@ -56,9 +60,14 @@ public class VoteController {
 		return ResponseEntity.ok(new ApiResponse<>(true, "Votes fetched successfully", response));
 	}
 
+	// =========================
 	// VOTER ONLY
+	// MY VOTE
+	// =========================
 	@GetMapping("/my_vote/{electionCode}")
-	public ResponseEntity<ApiResponse<VoteResponse>> getMyVote(Authentication authentication,
+	public ResponseEntity<ApiResponse<VoteResponse>> getMyVote(
+
+			Authentication authentication,
 
 			@PathVariable String electionCode) {
 

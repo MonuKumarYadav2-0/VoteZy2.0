@@ -15,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class PagedResponse<T> implements Serializable{
+    private static final long serialVersionUID = 1L;
 
     private List<T> content;
 

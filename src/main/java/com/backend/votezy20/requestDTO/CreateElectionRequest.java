@@ -16,24 +16,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateElectionRequest {
 
-    @NotBlank(
-            message = "Election name is required"
-    )
-    private String name;
+	@NotBlank(message = "Election name is required")
+	private String name;
 
-    @NotNull(
-            message = "Start time is required"
-    )
-    @Future(
-            message = "Start time must be in future"
-    )
-    private LocalDateTime startTime;
+	@NotNull(message = "Start time is required")
+	@Future(message = "Start time must be in future")
+	private LocalDateTime startTime;
 
-    @NotNull(
-            message = "End time is required"
-    )
-    @Future(
-            message = "End time must be in future"
-    )
-    private LocalDateTime endTime;
+	@NotNull(message = "End time is required")
+	@Future(message = "End time must be in future")
+	private LocalDateTime endTime;
 }

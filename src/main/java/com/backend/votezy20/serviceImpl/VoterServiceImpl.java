@@ -3,6 +3,7 @@ package com.backend.votezy20.serviceImpl;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -169,30 +170,7 @@ public class VoterServiceImpl implements VoterService {
 				.totalElements(voterPage.getTotalElements()).totalPages(voterPage.getTotalPages()).build();
 	}
 
-	@Override
-	@CacheEvict(value = "voters", allEntries = true)
-	public void deactivateVoter(String orgCode, String voterCode) {
-
-		Voter voter = voterRepository.findByVoterCodeAndOrganization_OrgCode(voterCode, orgCode)
-				.orElseThrow(() -> new RuntimeException("Voter not found"));
-
-		voter.setIsActive(false);
-
-		voterRepository.save(voter);
-	}
-
-	@Override
-	@CacheEvict(value = "voters", allEntries = true)
-	public void activateVoter(String orgCode, String voterCode) {
-
-		Voter voter = voterRepository.findByVoterCodeAndOrganization_OrgCode(voterCode, orgCode)
-				.orElseThrow(() -> new RuntimeException("Voter not found"));
-
-		voter.setIsActive(true);
-
-		voterRepository.save(voter);
-	}
-
+	
 	@Override
 	public VoterProfileResponse getByCode(String orgCode, String voterCode) {
 		// TODO Auto-generated method stub
@@ -200,8 +178,23 @@ public class VoterServiceImpl implements VoterService {
 	}
 
 	@Override
+	@CacheEvict(value = "voters", allEntries = true)
 	public void toggleVoterStatus(String orgCode, String voterCode) {
-		// TODO Auto-generated method stub
-		
+	    Voter voter = voterRepository.findByVoterCodeAndOrganization_OrgCode(voterCode, orgCode)
+	            .orElseThrow(() -> new RuntimeException("Voter not found"));
+
+	    Boolean current = voter.getIsActive();
+	    voter.setIsActive(current == null ? true : !current);
+
+	    voterRepository.save(voter);
+	}
+
+	@Override
+	public VoterProfileResponse getByCode(String voterCode) {
+		Optional<Voter> v=voterRepository.findByVoterCode(voterCode);
+		Voter voter=v.get();
+		return VoterProfileResponse.builder().voterCode(voter.getVoterCode()).name(voter.getName())
+				.email(voter.getEmail()).isActive(voter.getIsActive()).isPasswordSet(voter.getIsPasswordSet())
+				.createdAt(voter.getCreatedAt()).orgCode(voter.getOrganization().getOrgCode()).build();
 	}
 }

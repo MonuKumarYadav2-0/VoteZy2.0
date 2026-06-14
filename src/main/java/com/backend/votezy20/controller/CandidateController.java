@@ -28,8 +28,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 public class CandidateController {
-	@Autowired
-	private  CandidateService candidateService;
+	
+	private final  CandidateService candidateService;
 
 	// ORG ONLY
 	@PostMapping("/enroll")

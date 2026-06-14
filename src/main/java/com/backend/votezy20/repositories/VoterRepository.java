@@ -33,4 +33,6 @@ public interface VoterRepository extends JpaRepository<Voter, Long> {
 
 	// Optional helper
 	List<Voter> findByOrganization(Organization organization);
+
+	
 }

@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -97,6 +96,12 @@ public class VoterController {
 		return ResponseEntity.ok(new ApiResponse<>(true, "Voter fetched successfully", response));
 	}
 
+	@GetMapping("/profile/{voterCode}")
+	public ResponseEntity<ApiResponse<VoterProfileResponse>> getByCode(@PathVariable String voterCode) {
+		VoterProfileResponse response = voterService.getByCode(voterCode);
+		return ResponseEntity.ok(new ApiResponse<>(true, "Voter fetched successfully", response));
+	}
+
 	// ORG ONLY
 	@PutMapping("/toggle_status/{voterCode}")
 	public ResponseEntity<ApiResponse<String>> toggleStatus(Authentication authentication,
@@ -110,16 +115,16 @@ public class VoterController {
 		return ResponseEntity.ok(new ApiResponse<>(true, "Voter status updated", null));
 	}
 
-	// ORG ONLY
-	@DeleteMapping("/{voterCode}")
-	public ResponseEntity<ApiResponse<String>> delete(Authentication authentication,
-
-			@PathVariable String voterCode) {
-
-		String orgCode = authentication.getName();
-
-		voterService.deactivateVoter(orgCode, voterCode);
-
-		return ResponseEntity.ok(new ApiResponse<>(true, "Voter deleted successfully", null));
-	}
+//	// ORG ONLY
+//	@DeleteMapping("/{voterCode}")
+//	public ResponseEntity<ApiResponse<String>> delete(Authentication authentication,
+//
+//			@PathVariable String voterCode) {
+//
+//		String orgCode = authentication.getName();
+//
+//		voterService.deactivateVoter(orgCode, voterCode);
+//
+//		return ResponseEntity.ok(new ApiResponse<>(true, "Voter deleted successfully", null));
+//	}
 }

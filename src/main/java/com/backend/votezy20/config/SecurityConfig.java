@@ -22,57 +22,115 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final JwtAuthenticationFilter jwtFilter;
-	//private final PasswordEncoder passwordEncoder;
+    private final JwtAuthenticationFilter
+            jwtFilter;
 
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain
+    securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
-		http.csrf(csrf -> csrf.disable())
+        http
 
-				.cors(Customizer.withDefaults())
+        .csrf(
+                csrf ->
+                        csrf.disable()
+        )
 
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .cors(
+                Customizer.withDefaults()
+        )
 
-				.authorizeHttpRequests(auth -> auth
+        .sessionManagement(
+                session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+        )
 
-						// PUBLIC ORG
-						.requestMatchers("/api/org/register", "/api/org/login", "/api/org/verify_otp").permitAll()
+        .authorizeHttpRequests(
+                auth -> auth
 
-						// PUBLIC VOTER
-						.requestMatchers("/api/voter/login", "/api/voter/set_password").permitAll()
+                // ==================
+                // PUBLIC APIs
+                // ==================
+                .requestMatchers(
 
-						// PUBLIC RESULT
-						.requestMatchers("/api/result/*").permitAll()
+                        // ORG AUTH
+                        "/api/org/register",
+                        "/api/org/login",
+                        "/api/org/verify_otp",
 
-						// WEBSOCKET
-						.requestMatchers("/ws/**").permitAll()
+                        // VOTER AUTH
+                        "/api/voter/login",
+                        "/api/voter/set_password",
 
-						// ORG ONLY
-						.requestMatchers("/api/org/**", "/api/election/**", "/api/candidate/**").hasRole("ORG")
+                        // RESULTS
+                        "/api/result/**",
 
-						// VOTER ONLY
-						.requestMatchers("/api/vote/cast", "/api/vote/my_vote/**").hasRole("VOTER")
+                        // WEBSOCKET
+                        "/ws/**"
 
-						// ORG VOTE ACCESS
-						.requestMatchers("/api/vote/election/**").hasRole("ORG")
+                ).permitAll()
 
-						.anyRequest().authenticated())
+                // ==================
+                // TEST MODE
+                // Just token required
+                // ==================
 
-				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                // election APIs
+                .requestMatchers(
+                        "/api/election/**"
+                ).authenticated()
 
-		return http.build();
-	}
+                // candidate APIs
+                .requestMatchers(
+                        "/api/candidate/**"
+                ).authenticated()
 
-	@Bean
-	public PasswordEncoder passwordEncoder() {
+                // vote APIs
+                .requestMatchers(
+                        "/api/vote/**"
+                ).authenticated()
 
-		return new BCryptPasswordEncoder();
-	}
+                // voter APIs
+                .requestMatchers(
+                        "/api/voter/**"
+                ).authenticated()
 
-	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+                // org APIs
+                .requestMatchers(
+                        "/api/org/**"
+                ).authenticated()
 
-		return config.getAuthenticationManager();
-	}
+                // everything else
+                .anyRequest()
+                .authenticated()
+        )
+
+        .addFilterBefore(
+                jwtFilter,
+                UsernamePasswordAuthenticationFilter.class
+        );
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder
+    passwordEncoder() {
+
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager
+    authenticationManager(
+            AuthenticationConfiguration config
+    ) throws Exception {
+
+        return config
+                .getAuthenticationManager();
+    }
 }

@@ -41,4 +41,6 @@ public interface ElectionRepository extends JpaRepository<Election, Long> {
 
 	// Optional helper
 	List<Election> findByOrganization(Organization organization);
+	
+	 List<Election> findByIsActiveTrueAndEndTimeBefore(LocalDateTime time);
 }

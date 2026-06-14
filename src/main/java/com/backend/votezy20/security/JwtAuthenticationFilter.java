@@ -1,3 +1,4 @@
+
 package com.backend.votezy20.security;
 
 import java.io.IOException;
@@ -8,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
@@ -19,44 +19,92 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter
+        extends OncePerRequestFilter {
 
-	private final JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException,
+            IOException {
 
-		String token = getJwtFromRequest(request);
+        String token =
+                getJwtFromRequest(
+                        request
+                );
 
-		if (token != null && jwtUtil.isTokenValid(token)) {
+        if (token != null
+                && jwtUtil
+                        .isTokenValid(
+                                token
+                        )) {
 
-			String username = jwtUtil.extractUsername(token);
+            String code =
+                    jwtUtil.extractCode(
+                            token
+                    );
 
-			String role = jwtUtil.extractRole(token);
+            String role =
+                    jwtUtil.extractRole(
+                            token
+                    );
 
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null,
-					List.of(new SimpleGrantedAuthority(role)));
+            UsernamePasswordAuthenticationToken
+                    authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            code,
+                            null,
+                            List.of(
+                                    new SimpleGrantedAuthority(
+                                            role
+                                    )
+                            )
+                    );
 
-			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            authentication.setDetails(
+                    new WebAuthenticationDetailsSource()
+                            .buildDetails(
+                                    request
+                            )
+            );
 
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-		}
+            SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(
+                            authentication
+                    );
+        }
 
-		filterChain.doFilter(request, response);
-	}
-	
-	
+        filterChain.doFilter(
+                request,
+                response
+        );
+    }
 
-	private String getJwtFromRequest(HttpServletRequest request) {
+    private String getJwtFromRequest(
+            HttpServletRequest request
+    ) {
 
-		String bearerToken = request.getHeader("Authorization");
+        String bearerToken =
+                request.getHeader(
+                        "Authorization"
+                );
 
-		if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+        if (bearerToken != null
+                && bearerToken.startsWith(
+                        "Bearer "
+                )) {
 
-			return bearerToken.substring(7);
-		}
+            return bearerToken.substring(
+                    7
+            );
+        }
 
-		return null;
-	}
+        return null;
+    }
 }
+

@@ -26,303 +26,119 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ResultServiceImpl
-        implements ResultService {
+public class ResultServiceImpl implements ResultService {
 
-    private final ElectionRepository electionRepository;
-    private final ElectionResultRepository resultRepository;
-    private final VoteRepository voteRepository;
-    private final OrgRepository orgRepository;
-    private final ObjectMapper objectMapper;
+	private final ElectionRepository electionRepository;
+	private final ElectionResultRepository resultRepository;
+	private final VoteRepository voteRepository;
+	private final OrgRepository orgRepository;
+	private final ObjectMapper objectMapper;
 
-    @Override
-    @CacheEvict(
-            value = "results",
-            allEntries = true
-    )
-    public ElectionResultResponse announce(
-            String orgCode,
-            String electionCode
-    ) {
+	@Override
+	@CacheEvict(value = "results", allEntries = true)
+	public ElectionResultResponse announce(String orgCode, String electionCode) {
 
-        orgRepository
-                .findByOrgCode(orgCode)
-                .orElseThrow(
-                        () ->
-                                new RuntimeException(
-                                        "Organization not found"
-                                )
-                );
+		orgRepository.findByOrgCode(orgCode).orElseThrow(() -> new RuntimeException("Organization not found"));
 
-        if (resultRepository
-                .existsByElectionCode(
-                        electionCode
-                )) {
+		if (resultRepository.existsByElectionCode(electionCode)) {
 
-            throw new RuntimeException(
-                    "Result already announced"
-            );
-        }
+			throw new RuntimeException("Result already announced");
+		}
 
-        Election election =
-                electionRepository
-                        .findByElectionCodeAndOrganization_OrgCode(
-                                electionCode,
-                                orgCode
-                        )
-                        .orElseThrow(
-                                () ->
-                                        new RuntimeException(
-                                                "Election not found"
-                                        )
-                        );
+		Election election = electionRepository.findByElectionCodeAndOrganization_OrgCode(electionCode, orgCode)
+				.orElseThrow(() -> new RuntimeException("Election not found"));
+		
+		if(election.getIsActive())
+		{
+			throw new RuntimeException("Election is active");
+		}
 
-        List<CandidateVoteCountResponse>
-                candidateResults =
-                election.getCandidates()
-                        .stream()
-                        .map(candidate ->
-                                buildCandidateResult(
-                                        electionCode,
-                                        candidate
-                                )
-                        )
-                        .sorted(
-                                Comparator
-                                        .comparing(
-                                                CandidateVoteCountResponse
-                                                        ::getVoteCount
-                                        )
-                                        .reversed()
-                        )
-                        .toList();
+		List<CandidateVoteCountResponse> candidateResults = election.getCandidates().stream()
+				.map(candidate -> buildCandidateResult(electionCode, candidate))
+				.sorted(Comparator.comparing(CandidateVoteCountResponse::getVoteCount).reversed()).toList();
 
-        CandidateVoteCountResponse
-                winner =
-                candidateResults
-                        .stream()
-                        .findFirst()
-                        .orElseThrow(
-                                () ->
-                                        new RuntimeException(
-                                                "No candidates found"
-                                        )
-                        );
+		CandidateVoteCountResponse winner = candidateResults.stream().findFirst()
+				.orElseThrow(() -> new RuntimeException("No candidates found"));
 
-        String candidateResultsJson;
+		String candidateResultsJson;
 
-        try {
+		try {
 
-            candidateResultsJson =
-                    objectMapper
-                            .writeValueAsString(
-                                    candidateResults
-                            );
+			candidateResultsJson = objectMapper.writeValueAsString(candidateResults);
 
-        } catch (Exception e) {
+		} catch (Exception e) {
 
-            throw new RuntimeException(
-                    "Failed to serialize result"
-            );
-        }
+			throw new RuntimeException("Failed to serialize result");
+		}
 
-        ElectionResult result =
-                ElectionResult
-                        .builder()
-                        .electionCode(
-                                election.getElectionCode()
-                        )
-                        .electionName(
-                                election.getName()
-                        )
-                        .organizationCode(
-                                orgCode
-                        )
-                        .organization(
-                                election.getOrganization()
-                        )
-                        .totalVotes(
-                                (int)
-                                voteRepository
-                                        .countByElection_ElectionCode(
-                                                electionCode
-                                        )
-                        )
-                        .winnerName(
-                                winner.getName()
-                        )
-                        .winnerCandidateCode(
-                                winner.getCandidateCode()
-                        )
-                        .winnerPartyName(
-                                winner.getPartyName()
-                        )
-                        .candidateResultsJson(
-                                candidateResultsJson
-                        )
-                        .build();
+		
+		ElectionResult result = ElectionResult.builder().electionCode(election.getElectionCode())
+				.electionName(election.getName()).organizationCode(orgCode).organization(election.getOrganization())
+				.totalVotes((int) voteRepository.countByElection_ElectionCode(electionCode))
+				.winnerName(winner.getName()).winnerCandidateCode(winner.getCandidateCode())
+				.winnerPartyName(winner.getPartyName()).candidateResultsJson(candidateResultsJson).build();
 
-        resultRepository.save(result);
+		resultRepository.save(result);
 
-        return mapToResponse(result);
-    }
+		return mapToResponse(result);
+	}
 
-    @Override
-    @Cacheable(
-            value = "results",
-            key = "#electionCode"
-    )
-    @Transactional(readOnly = true)
-    public ElectionResultResponse
-    getResult(
-            String electionCode
-    ) {
+	@Override
+	@Cacheable(value = "results", key = "#electionCode")
+	@Transactional(readOnly = true)
+	public ElectionResultResponse getResult(String electionCode) {
 
-        ElectionResult result =
-                resultRepository
-                        .findByElectionCode(
-                                electionCode
-                        )
-                        .orElseThrow(
-                                () ->
-                                        new RuntimeException(
-                                                "Result not found"
-                                        )
-                        );
+		ElectionResult result = resultRepository.findByElectionCode(electionCode)
+				.orElseThrow(() -> new RuntimeException("Result not found"));
 
-        return mapToResponse(result);
-    }
+		return mapToResponse(result);
+	}
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ElectionResultResponse>
-    getAllResults(
-            String orgCode
-    ) {
+	@Override
+	@Transactional(readOnly = true)
+	public List<ElectionResultResponse> getAllResults(String orgCode) {
 
-        return resultRepository
-                .findByOrganization_OrgCode(
-                        orgCode
-                )
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
+		return resultRepository.findByOrganization_OrgCode(orgCode).stream().map(this::mapToResponse).toList();
+	}
 
-    @Override
-    @CacheEvict(
-            value = "results",
-            allEntries = true
-    )
-    public void deleteResult(
-            String orgCode,
-            String electionCode
-    ) {
+	@Override
+	@CacheEvict(value = "results", allEntries = true)
+	public void deleteResult(String orgCode, String electionCode) {
 
-        ElectionResult result =
-                resultRepository
-                        .findByElectionCodeAndOrganization_OrgCode(
-                                electionCode,
-                                orgCode
-                        )
-                        .orElseThrow(
-                                () ->
-                                        new RuntimeException(
-                                                "Result not found"
-                                        )
-                        );
+		ElectionResult result = resultRepository.findByElectionCodeAndOrganization_OrgCode(electionCode, orgCode)
+				.orElseThrow(() -> new RuntimeException("Result not found"));
 
-        resultRepository.delete(result);
-    }
+		resultRepository.delete(result);
+	}
 
-    private CandidateVoteCountResponse
-    buildCandidateResult(
-            String electionCode,
-            Candidate candidate
-    ) {
+	private CandidateVoteCountResponse buildCandidateResult(String electionCode, Candidate candidate) {
 
-        long voteCount =
-                voteRepository
-                        .countByElection_ElectionCodeAndCandidate_CandidateCode(
-                                electionCode,
-                                candidate.getCandidateCode()
-                        );
+		long voteCount = voteRepository.countByElection_ElectionCodeAndCandidate_CandidateCode(electionCode,
+				candidate.getCandidateCode());
 
-        return CandidateVoteCountResponse
-                .builder()
-                .candidateCode(
-                        candidate.getCandidateCode()
-                )
-                .name(
-                        candidate.getName()
-                )
-                .partyName(
-                        candidate.getPartyName()
-                )
-                .voteCount(
-                        voteCount
-                )
-                .build();
-    }
+		return CandidateVoteCountResponse.builder().candidateCode(candidate.getCandidateCode())
+				.name(candidate.getName()).partyName(candidate.getPartyName()).voteCount(voteCount).build();
+	}
 
-    private ElectionResultResponse
-    mapToResponse(
-            ElectionResult result
-    ) {
+	private ElectionResultResponse mapToResponse(ElectionResult result) {
 
-        List<CandidateVoteCountResponse>
-                candidateResults;
+		List<CandidateVoteCountResponse> candidateResults;
 
-        try {
+		try {
 
-            candidateResults =
-                    objectMapper
-                            .readValue(
-                                    result.getCandidateResultsJson(),
-                                    new TypeReference<
-                                            List<
-                                                    CandidateVoteCountResponse
-                                                    >
-                                            >() {
-                                    }
-                            );
+			candidateResults = objectMapper.readValue(result.getCandidateResultsJson(),
+					new TypeReference<List<CandidateVoteCountResponse>>() {
+					});
 
-        } catch (Exception e) {
+		} catch (Exception e) {
 
-            throw new RuntimeException(
-                    "Failed to deserialize result"
-            );
-        }
+			throw new RuntimeException("Failed to deserialize result");
+		}
 
-        return ElectionResultResponse
-                .builder()
-                .electionCode(
-                        result.getElectionCode()
-                )
-                .electionName(
-                        result.getElectionName()
-                )
-                .orgCode(
-                        result.getOrganizationCode()
-                )
-                .totalVotes(
-                        result.getTotalVotes()
-                )
-                .winnerName(
-                        result.getWinnerName()
-                )
-                .winnerCandidateCode(
-                        result.getWinnerCandidateCode()
-                )
-                .winnerPartyName(
-                        result.getWinnerPartyName()
-                )
-                .candidateResults(
-                        candidateResults
-                )
-                .announcedAt(
-                        result.getAnnouncedAt()
-                )
-                .build();
-    }
+		return ElectionResultResponse.builder().electionCode(result.getElectionCode())
+				.electionName(result.getElectionName()).orgCode(result.getOrganizationCode())
+				.totalVotes(result.getTotalVotes()).winnerName(result.getWinnerName())
+				.winnerCandidateCode(result.getWinnerCandidateCode()).winnerPartyName(result.getWinnerPartyName())
+				.candidateResults(candidateResults).announcedAt(result.getAnnouncedAt()).build();
+	}
 }
