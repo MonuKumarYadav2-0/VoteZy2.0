@@ -20,7 +20,7 @@ public class ElectionScheduler {
 
 	private final ElectionRepository electionRepository;
 
-	@Scheduled(fixedRate = 600000000) // every 1 minute
+	@Scheduled(fixedRate = 60000) // every 1 minute
 	@Transactional
 	public void deactivateExpiredElections() {
 

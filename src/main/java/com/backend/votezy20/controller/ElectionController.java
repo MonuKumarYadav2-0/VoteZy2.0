@@ -48,7 +48,7 @@ public class ElectionController {
 			@PathVariable String electionCode) {
 
 		String orgCode = authentication.getName();
-		ElectionResponse response = electionService.toggleStatus(orgCode, electionCode);
+		ElectionResponse response = electionService.deactivate(orgCode, electionCode);
 
 		return ResponseEntity.ok(new ApiResponse<>(true, "Election status updated", response));
 	}

@@ -67,39 +67,64 @@ public class VoterServiceImpl implements VoterService {
 	@CacheEvict(value = "voters", allEntries = true)
 	public void uploadVotersCsv(String orgCode, MultipartFile file) {
 
-		try {
+	    try {
 
-			Organization organization = orgRepository.findByOrgCode(orgCode)
-					.orElseThrow(() -> new RuntimeException("Organization not found"));
+	        Organization organization = orgRepository.findByOrgCode(orgCode)
+	                .orElseThrow(() -> new RuntimeException("Organization not found"));
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
+	        BufferedReader reader =
+	                new BufferedReader(new InputStreamReader(file.getInputStream()));
 
-			String line;
+	        String line;
 
-			while ((line = reader.readLine()) != null) {
+	        while ((line = reader.readLine()) != null) {
 
-				String[] data = line.split(",");
+	            // skip empty lines
+	            if (line.trim().isEmpty()) {
+	                continue;
+	            }
 
-				String name = data[0].trim();
+	            String[] data = line.split(",");
 
-				String email = data[1].trim();
+	            // invalid row skip
+	            if (data.length != 2) {
+	                System.out.println("Skipped invalid row: " + line);
+	                continue;
+	            }
 
-				if (voterRepository.existsByEmail(email)) {
-					continue;
-				}
+	            String name = data[0].trim();
+	            String email = data[1].trim();
 
-				Voter voter = Voter.builder().voterCode(CodeGenerator.generateVoterCode()).name(name).email(email)
-						.organization(organization).isActive(true).isPasswordSet(false).build();
+	            if (name.isBlank() || email.isBlank()) {
+	                continue;
+	            }
 
-				voterRepository.save(voter);
+	            if (voterRepository.existsByEmail(email)) {
+	                continue;
+	            }
 
-				emailService.sendVoterInviteEmail(voter.getEmail(), voter.getName(), voter.getVoterCode());
-			}
+	            Voter voter = Voter.builder()
+	                    .voterCode(CodeGenerator.generateVoterCode())
+	                    .name(name)
+	                    .email(email)
+	                    .organization(organization)
+	                    .isActive(true)
+	                    .isPasswordSet(false)
+	                    .build();
 
-		} catch (Exception e) {
+	            voterRepository.save(voter);
 
-			throw new RuntimeException("CSV upload failed");
-		}
+	             emailService.sendVoterInviteEmail(
+	                     voter.getEmail(),
+	                     voter.getName(),
+	                     voter.getVoterCode()
+	             );
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw new RuntimeException("CSV upload failed");
+	    }
 	}
 
 	@Override

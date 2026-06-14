@@ -87,12 +87,12 @@ public class ElectionServiceImpl implements ElectionService {
 
 	@Override
 	@CacheEvict(value = { "elections", "election" }, allEntries = true)
-	public ElectionResponse toggleStatus(String orgCode, String electionCode) {
+	public ElectionResponse deactivate(String orgCode, String electionCode) {
 
 		Election election = electionRepository.findByElectionCodeAndOrganization_OrgCode(electionCode, orgCode)
 				.orElseThrow(() -> new RuntimeException("Election not found"));
 
-		election.setIsActive(!Boolean.TRUE.equals(election.getIsActive()));
+		election.setIsActive(false);
 
 		Election saved = electionRepository.save(election);
 

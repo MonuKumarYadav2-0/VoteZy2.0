@@ -18,7 +18,7 @@ public interface ElectionService {
 
 	ElectionResponse getByCode(String orgCode, String electionCode);
 
-	ElectionResponse toggleStatus(String orgCode, String electionCode);
+	ElectionResponse deactivate(String orgCode, String electionCode);
 
 	List<ElectionResponse> getByStatus(String orgCode, boolean active);
 
