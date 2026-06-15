@@ -2,18 +2,11 @@ package com.backend.votezy20.service;
 
 public interface OtpService {
 
-    String generateOtp();
+	String generateOtp();
 
-    String createOtp(
-            String email
-    );
+	String createOtp(String email);
 
-    boolean verifyOtp(
-            String email,
-            String otp
-    );
+	boolean verifyOtp(String email, String otp);
 
-    void invalidateOtp(
-            String email
-    );
+	void invalidateOtp(String email);
 }

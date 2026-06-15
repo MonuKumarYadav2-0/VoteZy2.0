@@ -37,7 +37,7 @@ public class OtpServiceImpl implements OtpService {
 		String key = OTP_PREFIX + email;
 
 		// Save OTP in Redis
-		redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(15));
+		redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(5));
 
 		return otp;
 	}

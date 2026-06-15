@@ -29,7 +29,7 @@ public class EmailServiceImpl implements EmailService {
 	private String fromEmail;
 
 	@Override
-	@Async("emailExecutor")
+	@Async("taskExecutor")
 	public void sendOtpEmail(String to, String otp) {
 
 		String html = """
@@ -43,7 +43,7 @@ public class EmailServiceImpl implements EmailService {
 	}
 
 	@Override
-	@Async("emailExecutor")
+	@Async("taskExecutor")
 	public void sendVoterInviteEmail(String to, String name, String token) {
 
 		String setupLink = "http://localhost:5173/setup-password?token=" + token;
@@ -61,7 +61,7 @@ public class EmailServiceImpl implements EmailService {
 	}
 
 	@Override
-	@Async("emailExecutor")
+	@Async("taskExecutor")
 	public void sendPasswordSetupConfirmation(String to, String name) {
 
 		String html = """
@@ -74,7 +74,7 @@ public class EmailServiceImpl implements EmailService {
 	}
 
 	@Override
-	@Async("emailExecutor")
+	@Async("taskExecutor")
 	public void sendElectionNotification(String to, String name, String electionName) {
 
 		String html = """

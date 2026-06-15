@@ -1,14 +1,16 @@
 package com.backend.votezy20.serviceImpl;
 
+import java.time.Duration;
+
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.votezy20.entitiy.Organization;
 import com.backend.votezy20.exception.DuplicateResourceException;
-import com.backend.votezy20.exception.ResourceNotFoundException;
 import com.backend.votezy20.repositories.OrgRepository;
 import com.backend.votezy20.repositories.VoterRepository;
 import com.backend.votezy20.requestDTO.ChangePasswordRequest;
@@ -33,16 +35,17 @@ public class OrgServiceImpl implements OrgService {
 	private final EmailService emailService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
-	
+	private final RedisTemplate<String, Object> redisTemplate;
+
 	public OrgServiceImpl(OrgRepository orgRepository, VoterRepository voterRepository, OtpService otpService,
-			EmailService emailService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
-		super();
+			EmailService emailService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RedisTemplate<String , Object> redisTemplat) {
 		this.orgRepository = orgRepository;
 		this.voterRepository = voterRepository;
 		this.otpService = otpService;
 		this.emailService = emailService;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtUtil = jwtUtil;
+		this.redisTemplate = redisTemplat;
 	}
 
 	@Override
@@ -55,27 +58,25 @@ public class OrgServiceImpl implements OrgService {
 
 		Organization organization = Organization.builder().orgCode(CodeGenerator.generateOrgCode())
 				.orgName(request.getOrgName()).email(request.getEmail())
-				.password(passwordEncoder.encode(request.getPassword())).address(request.getAddress()).isVerified(false)
+				.password(passwordEncoder.encode(request.getPassword())).address(request.getAddress()).isVerified(true)
 				.isActive(true).build();
 
-		orgRepository.save(organization);
+		redisTemplate.opsForValue().set("org:" + request.getEmail(), organization, Duration.ofMinutes(5));
 
 		String otp = otpService.createOtp(request.getEmail());
 
 		emailService.sendOtpEmail(request.getEmail(), otp);
+		System.out.println(otp);
 	}
 
 	@Override
 	public void verifyOtp(VerifyOtpRequest request) {
-
-		Organization organization = orgRepository.findByEmail(request.getEmail())
-				.orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
-
+        String key="org:"+request.getEmail();
 		otpService.verifyOtp(request.getEmail(), request.getOtp());
 
-		organization.setIsVerified(true);
-
-		orgRepository.save(organization);
+		Organization org=(Organization)redisTemplate.opsForValue().get(key);
+        redisTemplate.delete(key);
+		orgRepository.save(org);
 	}
 
 	@Override
@@ -157,5 +158,4 @@ public class OrgServiceImpl implements OrgService {
 		emailService.sendVoterInviteEmail(voter.getEmail(), voter.getName(), token);
 	}
 
-	
 }

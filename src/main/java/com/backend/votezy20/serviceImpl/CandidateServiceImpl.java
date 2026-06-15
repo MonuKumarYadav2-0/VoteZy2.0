@@ -44,7 +44,11 @@ public class CandidateServiceImpl implements CandidateService {
 	            .findByElectionCodeAndOrganization_OrgCode(request.getElectionCode(), orgCode)
 	            .orElseThrow(() -> new RuntimeException("Election not found"));
 
-	    // Voter exists
+	    if(election.getIsActive()==true)
+	    {
+	    	throw new RuntimeException("Election Allready started");
+	    }
+	    
 	    Voter voter = voterRepository.findByVoterCodeAndOrganization_OrgCode(request.getVoterCode(), orgCode)
 	            .orElseThrow(() -> new RuntimeException("Voter not found"));
 

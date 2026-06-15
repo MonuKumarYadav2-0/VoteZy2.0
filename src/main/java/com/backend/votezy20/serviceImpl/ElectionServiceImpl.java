@@ -112,10 +112,7 @@ public class ElectionServiceImpl implements ElectionService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<ElectionResponse> getForVoter(String voterCode) {
-		 System.out.println(
-		            "JWT voterCode = "
-		                    + voterCode
-		    );
+		System.out.println("JWT voterCode = " + voterCode);
 
 		Voter voter = voterRepository.findByVoterCode(voterCode)
 				.orElseThrow(() -> new RuntimeException("Voter not found"));
